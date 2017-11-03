@@ -1,11 +1,88 @@
 FOR TESTING PURPOSES ONLY
 
+library SafeMath {
+    
+  function mul(uint256 a, uint256 b) internal constant returns (uint256) {
+    uint256 c = a * b;
+    assert(a == 0 || c / a == b);
+    return c;
+  }
+ 
+  function div(uint256 a, uint256 b) internal constant returns (uint256) {
+    // assert(b > 0); // Solidity automatically throws when dividing by 0
+    uint256 c = a / b;
+    // assert(a == b * c + a % b); // There is no case in which this doesn't hold
+    return c;
+  }
+ 
+  function sub(uint256 a, uint256 b) internal constant returns (uint256) {
+    assert(b <= a);
+    return a - b;
+  }
+ 
+  function add(uint256 a, uint256 b) internal constant returns (uint256) {
+    uint256 c = a + b;
+    assert(c >= a);
+    return c;
+  }
+  
+}
+
+contract Owned {
+    // The address of the account of the current owner
+    address public owner;
+
+    // The publiser is the inital owner
+    function Owned() public {
+        owner = msg.sender;
+    }
+
+    /**
+     * Access is restricted to the current owner
+     */
+    modifier onlyOwner() {
+        require(msg.sender == owner);
+        _;
+    }
+
+    /**
+     * Transfer ownership to `_newOwner`
+     *
+     * @param _newOwner The address of the account that will become the new owner
+     */
+    function transferOwnership(address _newOwner) public onlyOwner {
+        owner = _newOwner;
+    }
+}
 
 contract airDrop {
     function verify(address _address, bytes32 _secret) public constant returns (bool _status);
 }
 
-contract SMART1 {
+contract BurnableToken {
+
+    event Burn(address indexed burner, uint256 value);
+
+    /**
+     * @dev Burns a specific amount of tokens.
+     * @param _value The amount of token to be burned.
+     */
+    function burn(uint256 _value) public {
+        require(_value > 0);
+        require(_value <= balances[msg.sender]);
+        // no need to require value <= totalSupply, since that would imply the
+        // sender's balance is greater than the totalSupply, which *should* be an assertion failure
+
+        address burner = msg.sender;
+        balances[burner] = balances[burner].sub(_value);
+        totalSupply = totalSupply.sub(_value);
+        Burn(burner, _value);
+    }
+}
+
+contract SMART1 is BurnableToken, Owned {
+    using SafeMath for uint256;
+    
     string public constant symbol = "SMT1";
 
     string public constant name = "Smart One";
