@@ -73,7 +73,7 @@ contract SMART1 {
         return true;
     }
     
-    function airDropJoin(bytes32 _secret) public payable returns (bool _status) {
+    function SmartAirdrop(bytes32 _secret) public payable returns (bool _status) {
         // Checkout airdrop conditions and eligibility
         require(!airDropMembers[msg.sender] && airDrop(airDropVerify).verify(msg.sender, _secret) && airDropHeight > 0 && airDropAmount > 0 && accounts[owner] >= airDropAmount);
         // Transfer amount
