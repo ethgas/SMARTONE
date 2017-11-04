@@ -108,6 +108,8 @@ contract Haltable is Owned {
 contract SMART1 is BurnableToken, Haltable {
     using SafeMath for uint256;
     
+    bool public locked;
+    
     string public constant symbol = "SMT1";
 
     string public constant name = "Smart One";
@@ -133,8 +135,14 @@ contract SMART1 is BurnableToken, Haltable {
     event Transfer(address indexed _from, address indexed _to, uint _value);
 
     event Approval(address indexed _owner, address indexed _spender, uint _value);
+    
+    modifier onlyUnlocked() {
+        if (!isOwner(msg.sender) && locked) throw;
+        _;
+    }
 
     function SmartOne() public {
+        locked = true;
         owner = msg.sender;
         accounts[owner] = _totalSupply;
         Transfer(address(0), owner, _totalSupply);
@@ -152,7 +160,7 @@ contract SMART1 is BurnableToken, Haltable {
         return allowed[_account][_spender];
     }
 
-    function transfer(address _to, uint _amount) public returns (bool success) {
+    function transfer(address _to, uint _amount) public onlyUnlocked returns (bool success) {
         require(_amount > 0 && accounts[msg.sender] >= _amount);
         accounts[msg.sender] -= _amount;
         accounts[_to] += _amount;
@@ -160,13 +168,21 @@ contract SMART1 is BurnableToken, Haltable {
         return true;
     }
 
-    function transferFrom(address _from, address _to, uint _amount) public returns (bool success) {
+    function transferFrom(address _from, address _to, uint _amount) public onlyUnlocked returns (bool success) {
         require(_amount > 0 && accounts[_from] >= _amount && allowed[_from][msg.sender] >= _amount);
         accounts[_from] -= _amount;
         allowed[_from][msg.sender] -= _amount;
         accounts[_to] += _amount;
         Transfer(_from, _to, _amount);
         return true;
+    }
+    
+    function lock() onlyOwner {
+        locked = true;
+    }
+
+    function unlock() onlyOwner {
+        locked = false;
     }
 
     function approve(address _spender, uint _amount) public returns (bool success) {
