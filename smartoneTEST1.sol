@@ -59,7 +59,7 @@ contract airDrop {
     function verify(address _address, bytes32 _secret) public constant returns (bool _status);
 }
 
-contract BurnableToken {
+contract BurnableToken is Owned {
 
     event Burn(address indexed burner, uint256 value);
 
@@ -105,7 +105,7 @@ contract Haltable is Owned {
 
 }
 
-contract SMART1 is BurnableToken, Owned, Haltable {
+contract SMART1 is BurnableToken, Haltable {
     using SafeMath for uint256;
     
     string public constant symbol = "SMT1";
