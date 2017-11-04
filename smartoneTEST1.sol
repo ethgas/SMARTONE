@@ -80,46 +80,32 @@ contract BurnableToken {
     }
 }
 
-contract Pausable {
-  event Pause();
-  event Unpause();
+contract Haltable is Owned {
+  bool public halted;
 
-  bool public paused = false;
-
-
-  /**
-   * @dev Modifier to make a function callable only when the contract is not paused.
-   */
-  modifier whenNotPaused() {
-    require(!paused);
+  modifier stopInEmergency {
+    if (halted) throw;
     _;
   }
 
-  /**
-   * @dev Modifier to make a function callable only when the contract is paused.
-   */
-  modifier whenPaused() {
-    require(paused);
+  modifier onlyInEmergency {
+    if (!halted) throw;
     _;
   }
 
-  /**
-   * @dev called by the owner to pause, triggers stopped state
-   */
-  function pause() onlyOwner whenNotPaused public {
-    paused = true;
-    Pause();
+  // called by the owner on emergency, triggers stopped state
+  function halt() external onlyOwner {
+    halted = true;
   }
 
-  /**
-   * @dev called by the owner to unpause, returns to normal state
-   */
-  function unpause() onlyOwner whenPaused public {
-    paused = false;
-    Unpause();
+  // called by the owner on end of emergency, returns to normal state
+  function unhalt() external onlyOwner onlyInEmergency {
+    halted = false;
   }
+
 }
-contract SMART1 is BurnableToken, Owned, Pausable {
+
+contract SMART1 is BurnableToken, Owned, Haltable {
     using SafeMath for uint256;
     
     string public constant symbol = "SMT1";
