@@ -1,5 +1,9 @@
 FOR TESTING PURPOSES ONLY
 
+pragma solidity ^0.4.16;
+
+//FOR TESTING PURPOSES ONLY
+
 library SafeMath {
     
   function mul(uint256 a, uint256 b) internal constant returns (uint256) {
@@ -59,53 +63,44 @@ contract airDrop {
     function verify(address _address, bytes32 _secret) public constant returns (bool _status);
 }
 
-contract BurnableToken is Owned {
 
-    event Burn(address indexed burner, uint256 value);
 
-    /**
-     * @dev Burns a specific amount of tokens.
-     * @param _value The amount of token to be burned.
-     */
-    function burn(uint256 _value) public {
-        require(_value > 0);
-        require(_value <= balances[msg.sender]);
-        // no need to require value <= totalSupply, since that would imply the
-        // sender's balance is greater than the totalSupply, which *should* be an assertion failure
+/*
+ * Pausable
+ * Abstract contract that allows children to implement an
+ * emergency stop mechanism.
+ */
 
-        address burner = msg.sender;
-        balances[burner] = balances[burner].sub(_value);
-        totalSupply = totalSupply.sub(_value);
-        Burn(burner, _value);
-    }
-}
-
-contract Haltable is Owned {
-  bool public halted;
+contract Pausable is Owned {
+  bool public stopped;
 
   modifier stopInEmergency {
-    if (halted) throw;
+    if (stopped) {
+      revert();
+    }
     _;
   }
-
+  
   modifier onlyInEmergency {
-    if (!halted) throw;
+    if (!stopped) {
+      revert();
+    }
     _;
   }
 
   // called by the owner on emergency, triggers stopped state
-  function halt() external onlyOwner {
-    halted = true;
+  function emergencyStop() external onlyOwner {
+    stopped = true;
   }
 
   // called by the owner on end of emergency, returns to normal state
-  function unhalt() external onlyOwner onlyInEmergency {
-    halted = false;
+  function release() external onlyOwner onlyInEmergency {
+    stopped = false;
   }
 
 }
 
-contract SMART1 is BurnableToken, Haltable {
+contract SMART1 is Pausable {
     using SafeMath for uint256;
     
     bool public locked;
@@ -137,8 +132,11 @@ contract SMART1 is BurnableToken, Haltable {
     event Approval(address indexed _owner, address indexed _spender, uint _value);
     
     modifier onlyUnlocked() {
-        if (!isOwner(msg.sender) && locked) throw;
-        _;
+
+      if (owner != msg.sender) {
+        require(false == locked);
+      }
+      _;
     }
 
     function SmartOne() public {
