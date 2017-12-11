@@ -1,5 +1,8 @@
 
 //FOR TESTING PURPOSES ONLY. DO NOT USE IN PRODUCTION
+//SAaS Smart Airdrop contract in development
+//rev 0.3a
+//11.12.2017
 
 pragma solidity ^0.4.16;
 
